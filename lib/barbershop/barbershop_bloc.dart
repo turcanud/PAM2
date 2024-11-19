@@ -6,21 +6,20 @@ import 'barbershop_event.dart';
 import 'barbershop_state.dart';
 
 class BarbershopBloc extends Bloc<BarbershopEvent, BarbershopState> {
-  BarbershopBloc() : super(BarbershopLoading());
+  BarbershopBloc() : super(BarbershopLoading()) {
+    on<LoadBarbershops>(_onLoadBarbershops);
+  }
 
-  Stream<BarbershopState> mapEventToState(BarbershopEvent event) async* {
-    if (event is LoadBarbershops) {
-      yield BarbershopLoading();
-      try {
-        final String response = await rootBundle.loadString('assets/v2.json');
-        final data = json.decode(response);
-        final nearestBarbershop = data['nearest_barbershop'] as List;
-        final mostRecommended = data['most_recommended'] as List;
-
-        yield BarbershopLoaded(nearestBarbershop, mostRecommended);
-      } catch (_) {
-        yield BarbershopError();
-      }
+  Future<void> _onLoadBarbershops(
+      LoadBarbershops event, Emitter<BarbershopState> emit) async {
+    try {
+      final String response = await rootBundle.loadString('assets/v2.json');
+      final data = json.decode(response);
+      final nearestBarbershop = data['nearest_barbershop'] as List;
+      final mostRecommended = data['most_recommended'] as List;
+      emit(BarbershopLoaded(nearestBarbershop, mostRecommended));
+    } catch (e) {
+      emit(BarbershopError());
     }
   }
 }
